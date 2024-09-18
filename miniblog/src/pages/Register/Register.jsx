@@ -1,6 +1,6 @@
 import styles from "./Register.module.css";
-
 import { useState, useEffect } from "react";
+import { useAuthentication } from "../../hooks/useAuthentication";
 
 const Register = () => {
   const [displayName, setDisplayName] = useState("");
@@ -9,10 +9,22 @@ const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const { createUser, error: authError, loading } = useAuthentication();
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     setError("");
+
+    // Validação básica
+    if (!displayName || !email || !password || !confirmPassword) {
+      setError("Todos os campos são obrigatórios.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError("As senhas precisam ser iguais.");
+      return;
+    }
 
     const user = {
       displayName,
@@ -20,13 +32,15 @@ const Register = () => {
       password,
     };
 
-    if (password !== confirmPassword) {
-      setError("As senhas precisam ser iguais");
-      return;
-    }
-
-    console.log(user);
+    const res = await createUser(user);
+    console.log(res);
   };
+
+  useEffect(() => {
+    if (authError) {
+      setError(authError);
+    }
+  }, [authError]);
 
   return (
     <div className={styles.register}>
@@ -45,7 +59,7 @@ const Register = () => {
           />
         </label>
         <label>
-          <span>Nome:</span>
+          <span>E-mail:</span>
           <input
             type="email"
             name="email"
@@ -56,7 +70,7 @@ const Register = () => {
           />
         </label>
         <label>
-          <span>Nome:</span>
+          <span>Senha:</span>
           <input
             type="password"
             name="password"
@@ -67,7 +81,7 @@ const Register = () => {
           />
         </label>
         <label>
-          <span>Nome:</span>
+          <span>Confirme a Senha:</span>
           <input
             type="password"
             name="confirmPassword"
@@ -77,7 +91,12 @@ const Register = () => {
             onChange={(e) => setConfirmPassword(e.target.value)}
           />
         </label>
-        <button className="btn">Cadastrar</button>
+        {!loading && <button className="btn">Cadastrar</button>}
+        {loading && (
+          <button className="btn" disabled>
+            Aguarde...
+          </button>
+        )}
         {error && <p className="error">{error}</p>}
       </form>
     </div>
