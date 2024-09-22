@@ -71,6 +71,37 @@ export const useAuthentication = () => {
     signOut(auth);
   };
 
+  //login - sign out
+
+  const login = async (data) => {
+    checkIfIsCancelled();
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      await signInWithEmailAndPassword(auth, data.email, data.password);
+    } catch (error) {
+      let systemErrorMessage;
+
+      console.log("Error Code:", error.code);
+      console.log("Error Message:", error.message);
+
+      // Verifica o código do erro
+      if (error.code === "auth/invalid-credential") {
+        systemErrorMessage = "Email ou senha inválidos.";
+      } else {
+        // Mensagem genérica para outros erros
+        systemErrorMessage = "Ocorreu um erro, por favor tente mais tarde.";
+      }
+
+      setError(systemErrorMessage);
+      console.error("Erro ao criar usuário:", error); // Adiciona log para depuração
+    } finally {
+      setLoading(false); // Sempre para o loading no final
+    }
+  };
+
   useEffect(() => {
     return () => setCancelled(true);
   }, []);
@@ -81,5 +112,6 @@ export const useAuthentication = () => {
     error,
     loading,
     logout,
+    login,
   };
 };
